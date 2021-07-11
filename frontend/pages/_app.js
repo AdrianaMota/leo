@@ -1,6 +1,8 @@
-import { ChakraProvider } from "@chakra-ui/react";
-import defaultTheme from "../utils/chakra/theme";
-import "../styles/globals.css";
+import { ChakraProvider } from '@chakra-ui/react';
+import defaultTheme from '../utils/chakra/theme';
+import '../styles/globals.css';
+
+import 'regenerator-runtime/runtime';
 
 function MyApp({ Component, pageProps }) {
   return (

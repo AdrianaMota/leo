@@ -1,16 +1,7 @@
-import {
-  Button,
-  VStack,
-  Heading,
-  Box,
-  Stack,
-  HStack,
-  useClipboard,
-  IconButton,
-} from '@chakra-ui/react';
-import { CopyIcon } from '@chakra-ui/icons';
+import { Button, VStack, Heading, Box, Stack, HStack } from '@chakra-ui/react';
 import Link from 'next/link';
-import Copy from '../utils/chakra/components/Copy';
+import Copy from '../components/Copy';
+import Logo from '../components/Logo';
 
 export default function Home() {
   return (
@@ -18,26 +9,9 @@ export default function Home() {
       alignItems={{ base: 'center', lg: 'stretch' }}
       minHeight="100vh"
       overflow="hidden"
+      padding={{ base: '1rem', lg: '2rem 5rem' }}
     >
-      <VStack
-        alignItems={{ base: 'center', lg: 'stretch' }}
-        padding={{ base: '1rem', lg: '2rem 0 0 5rem' }}
-      >
-        <Heading
-          as="h1"
-          fontSize={['xxl', 'xxxl']}
-          color="primaryBlue.500"
-          fontWeight="black"
-        >
-          <Link href="/">Leo</Link>
-          <Box as="span" color="primaryYellow.500">
-            .
-          </Box>
-        </Heading>
-        <Heading as="h3" fontSize={['m', 'l']} fontWeight="regular">
-          Transcripciones en vivo
-        </Heading>
-      </VStack>
+      <Logo />
       <VStack justifyContent="center" flex="0.8">
         <Heading as="h2" fontSize="l" fontFamily="main" fontWeight="regular">
           Copie el código para invitar estudiantes a la sala.
