@@ -7,25 +7,25 @@ import {
   HStack,
   useClipboard,
   IconButton,
-} from "@chakra-ui/react";
-import { CopyIcon } from "@chakra-ui/icons";
-import Link from "next/link";
-import Copy from "../utils/chakra/components/Copy";
+} from '@chakra-ui/react';
+import { CopyIcon } from '@chakra-ui/icons';
+import Link from 'next/link';
+import Copy from '../utils/chakra/components/Copy';
 
 export default function Home() {
   return (
     <VStack
-      alignItems={{ base: "center", lg: "stretch" }}
+      alignItems={{ base: 'center', lg: 'stretch' }}
       minHeight="100vh"
       overflow="hidden"
     >
       <VStack
-        alignItems={{ base: "center", lg: "stretch" }}
-        padding={{ base: "1rem", lg: "2rem 0 0 5rem" }}
+        alignItems={{ base: 'center', lg: 'stretch' }}
+        padding={{ base: '1rem', lg: '2rem 0 0 5rem' }}
       >
         <Heading
           as="h1"
-          fontSize={["xxl", "xxxl"]}
+          fontSize={['xxl', 'xxxl']}
           color="primaryBlue.500"
           fontWeight="black"
         >
@@ -34,7 +34,7 @@ export default function Home() {
             .
           </Box>
         </Heading>
-        <Heading as="h3" fontSize={["m", "l"]} fontWeight="regular">
+        <Heading as="h3" fontSize={['m', 'l']} fontWeight="regular">
           Transcripciones en vivo
         </Heading>
       </VStack>
@@ -56,9 +56,9 @@ export default function Home() {
             <Copy />
           </HStack>
         </VStack>
-        <Stack padding="5rem 0" direction={["column", "row"]}>
-          <Button marginRight={{ base: "0", lg: "2rem" }} colorScheme="blue">
-            <Link href="/verification">Ir a la sala</Link>
+        <Stack padding="5rem 0" direction={['column', 'row']}>
+          <Button marginRight={{ base: '0', lg: '2rem' }} colorScheme="blue">
+            <Link href="/transcribe">Ir a la sala</Link>
           </Button>
         </Stack>
       </VStack>
