@@ -102,6 +102,7 @@ export default function Transcribe() {
           value={transcript}
           fontSize={`${fontSize}px`}
           padding="1rem 2rem"
+          placeholder="Aquí se mostrará el texto cuando el maestro empiece la a hablar"
         />
       ) : (
         <Text>Browser doesn't support speech recognition.</Text>
