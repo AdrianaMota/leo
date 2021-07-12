@@ -2,6 +2,7 @@ import { Button, VStack, Heading, Box, Stack, HStack } from '@chakra-ui/react';
 import Link from 'next/link';
 import Copy from '../components/Copy';
 import Logo from '../components/Logo';
+import { useSocket } from '../utils/common/socket';
 
 export default function Home() {
   return (
