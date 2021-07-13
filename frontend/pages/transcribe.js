@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import {
   VStack,
   Textarea,
@@ -10,12 +10,14 @@ import {
   IconButton,
   Text,
   Icon,
+  Skeleton,
 } from '@chakra-ui/react'
 import SpeechRecognition, {
   useSpeechRecognition,
 } from 'react-speech-recognition'
 import { MinusIcon, AddIcon } from '@chakra-ui/icons'
 import { useRouter } from 'next/router'
+import { throttle } from 'throttle-debounce'
 
 import Logo from '../components/Logo'
 import ClientOnly from '../components/ClientOnly'
@@ -32,26 +34,49 @@ export default function Transcribe() {
   const router = useRouter()
   const { roomId } = router.query
 
+  const socketRef = useRef(socket)
+
   const [fontSize, setFontSize] = useState(18)
   const [content, setContent] = useState('')
   const [isOwner, setIsOwner] = useState(false)
+  const [isInRoom, setIsInRoom] = useState(false)
 
   useEffect(() => {
-    if (roomId) socket.emit('room:join', roomId)
+    socketRef.current = socket
+  }, [socket])
 
-    socket.on('room:content', room => {
+  useEffect(() => {
+    if (roomId && !isInRoom) socketRef.current.emit('room:join', roomId)
+  }, [isInRoom, roomId])
+
+  useEffect(() => {
+    socketRef.current.on('room:content', room => {
       if (room.status === 404) return router.push('/') // redirect to main page if room is not found
+      if (!isInRoom) setIsInRoom(true)
+
+      // console.log('received data from room: ', room, socket.id)
       setContent(room.content)
-      setIsOwner(room.isOwner)
+      setIsOwner(room.owner === socket.id)
     })
-  }, [socket, roomId, router])
+  }, [socket, roomId, router, isInRoom])
+
+  const sendContentToRoom = useMemo(
+    () =>
+      throttle(500, (roomId, content) => {
+        socketRef.current.emit('room:editContent', {
+          id: roomId,
+          content,
+        })
+      }),
+    [],
+  )
 
   useEffect(() => {
-    setContent(transcript)
     if (isOwner) {
-      socket.emit('room:editContent', { id: roomId, content: transcript })
+      sendContentToRoom(roomId, transcript)
+      setContent(transcript)
     }
-  }, [isOwner, roomId, socket, transcript])
+  }, [content, isOwner, roomId, sendContentToRoom, socket, transcript])
 
   const handleFontSizeChange = event => {
     setFontSize(event.target.value)
@@ -124,19 +149,27 @@ export default function Transcribe() {
         </HStack>
       </HStack>
       <ClientOnly display="flex" flexDirection="column" flex="1">
-        {browserSupportsSpeechRecognition ? (
-          <Textarea
-            readOnly
-            variant="outline"
-            value={content}
-            flex="1"
-            fontSize={`${fontSize}px`}
-            padding="1rem 2rem"
-            placeholder="Aquí se mostrará el texto cuando el maestro empiece la a hablar"
-          />
-        ) : (
-          <Text>Browser doesn't support speech recognition.</Text>
-        )}
+        <Skeleton
+          display="flex"
+          flexDirection="column"
+          flex="1"
+          rounded="lg"
+          isLoaded={isInRoom}
+        >
+          {browserSupportsSpeechRecognition ? (
+            <Textarea
+              readOnly
+              variant="outline"
+              value={content}
+              flex="1"
+              fontSize={`${fontSize}px`}
+              padding="1rem 2rem"
+              placeholder="Aquí se mostrará el texto cuando el maestro empiece la a hablar"
+            />
+          ) : (
+            <Text>Browser doesn't support speech recognition.</Text>
+          )}
+        </Skeleton>
       </ClientOnly>
     </VStack>
   )

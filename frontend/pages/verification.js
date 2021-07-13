@@ -1,8 +1,23 @@
+import { useState } from 'react'
 import { Button, VStack, Input, Flex, Image, Spacer } from '@chakra-ui/react'
 import Link from 'next/link'
 import Logo from '../components/Logo'
+import { useRouter } from 'next/router'
 
 export default function Home() {
+  const router = useRouter()
+
+  const [inputValue, setInputValue] = useState('')
+
+  const handleCodeChange = e => {
+    setInputValue(e.target.value)
+  }
+
+  const handleStartClick = () => {
+    if (inputValue.length !== 6) return
+    router.push(`/transcribe?roomId=${inputValue}`)
+  }
+
   return (
     <VStack
       alignItems={{ base: 'center', lg: 'stretch' }}
@@ -28,14 +43,16 @@ export default function Home() {
             pr="20rem"
             size="lg"
             marginBottom="2rem"
+            onChange={handleCodeChange}
           />
           <Button
             alignSelf={{ base: 'stretch', lg: 'flex-start' }}
             color="background.500"
             marginRight={{ lg: '2rem' }}
             colorScheme="primaryYellow"
+            onClick={handleStartClick}
           >
-            <Link href="/transcribe">¡Empezar!</Link>
+            ¡Empezar!
           </Button>
         </VStack>
         <Spacer display={{ base: 'none', lg: 'block' }} />

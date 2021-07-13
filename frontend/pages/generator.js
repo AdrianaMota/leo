@@ -44,13 +44,15 @@ export default function Home() {
           </HStack>
         </VStack>
         <Stack padding="5rem 0" direction={['column', 'row']}>
-          <Button
-            isDisabled={!roomId}
-            marginRight={{ base: '0', lg: '2rem' }}
-            colorScheme="blue"
-          >
-            <Link href={`/transcribe?roomId=${roomId}`}>Ir a la sala</Link>
-          </Button>
+          <Link href={`/transcribe?roomId=${roomId}`} passHref>
+            <Button
+              isDisabled={!roomId}
+              marginRight={{ base: '0', lg: '2rem' }}
+              colorScheme="blue"
+            >
+              Ir a la sala
+            </Button>
+          </Link>
         </Stack>
       </VStack>
     </VStack>

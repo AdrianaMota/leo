@@ -34,16 +34,18 @@ export default function Home() {
           ¿Cómo deseas iniciar?
         </Heading>
         <Stack padding="5rem 0" direction={['column', 'row']}>
-          <Button
-            color="background.500"
-            marginRight={{ base: '0', lg: '2rem' }}
-            colorScheme="primaryYellow"
-          >
-            <Link href="/verification">Soy estudiante</Link>
-          </Button>
-          <Button colorScheme="primaryBlue">
-            <Link href="/generator">Soy maestro</Link>
-          </Button>
+          <Link href="/verification" passHref>
+            <Button
+              color="background.500"
+              marginRight={{ base: '0', lg: '2rem' }}
+              colorScheme="primaryYellow"
+            >
+              Soy estudiante
+            </Button>
+          </Link>
+          <Link href="/generator" passHref>
+            <Button colorScheme="primaryBlue">Soy maestro</Button>
+          </Link>
         </Stack>
       </VStack>
     </VStack>

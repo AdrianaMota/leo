@@ -46,7 +46,6 @@ io.on('connection', socket => {
     socket.emit('room:content', {
       ...room,
       status: 200,
-      isOwner: room.owner === socket.id,
     })
   })
 
@@ -60,13 +59,13 @@ io.on('connection', socket => {
 
   socket.on('room:editContent', ({ id, content }) => {
     const room = rooms[id]
+    if (!room) return
     if (room.owner !== socket.id) return // only allow owner to edit content
 
     rooms[id] = { ...room, content }
-    socket.to(room.id).emit('room:content', {
-      ...room,
+    socket.broadcast.to(room.id).emit('room:content', {
+      ...rooms[id],
       status: 200,
-      isOwner: room.owner === socket.id,
     })
   })
 })
