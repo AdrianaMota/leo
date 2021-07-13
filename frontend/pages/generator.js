@@ -40,7 +40,7 @@ export default function Home() {
             >
               {Boolean(roomId) ? roomId : 'Cargando...'}
             </Heading>
-            <Copy />
+            <Copy code={roomId} />
           </HStack>
         </VStack>
         <Stack padding="5rem 0" direction={['column', 'row']}>

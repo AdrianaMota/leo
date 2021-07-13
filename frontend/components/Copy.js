@@ -2,8 +2,8 @@ import React from 'react'
 import { useClipboard, IconButton } from '@chakra-ui/react'
 import { CopyIcon, CheckIcon } from '@chakra-ui/icons'
 
-const Copy = () => {
-  const [value, setValue] = React.useState('M95a23')
+const Copy = ({ code }) => {
+  const [value, setValue] = React.useState(code)
   const { hasCopied, onCopy } = useClipboard(value)
 
   return (
