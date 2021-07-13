@@ -1,6 +1,6 @@
-import { extendTheme } from '@chakra-ui/react';
+import { extendTheme } from '@chakra-ui/react'
 
-import components from './components';
+import components from './components'
 
 const defaultTheme = extendTheme({
   fontSizes: {
@@ -113,6 +113,6 @@ const defaultTheme = extendTheme({
     },
   },
   components,
-});
+})
 
-export default defaultTheme;
+export default defaultTheme

@@ -1,6 +1,6 @@
-import { Button, VStack, Stack, Heading, Box } from '@chakra-ui/react';
-import Link from 'next/link';
-import Logo from '../components/Logo';
+import { Button, VStack, Stack, Heading, Box } from '@chakra-ui/react'
+import Link from 'next/link'
+import Logo from '../components/Logo'
 
 export default function Home() {
   return (
@@ -47,5 +47,5 @@ export default function Home() {
         </Stack>
       </VStack>
     </VStack>
-  );
+  )
 }

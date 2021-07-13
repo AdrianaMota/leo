@@ -1,4 +1,4 @@
-import { VStack, Heading, Link, Box } from '@chakra-ui/react';
+import { VStack, Heading, Link, Box } from '@chakra-ui/react'
 
 const Logo = () => {
   return (
@@ -25,7 +25,7 @@ const Logo = () => {
         Transcripciones en vivo
       </Heading>
     </VStack>
-  );
-};
+  )
+}
 
-export default Logo;
+export default Logo

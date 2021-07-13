@@ -1,10 +1,22 @@
-import { Button, VStack, Heading, Box, Stack, HStack } from '@chakra-ui/react';
-import Link from 'next/link';
-import Copy from '../components/Copy';
-import Logo from '../components/Logo';
-import { useSocket } from '../utils/common/socket';
+import { useEffect, useState } from 'react'
+import { Button, VStack, Heading, Stack, HStack } from '@chakra-ui/react'
+import Link from 'next/link'
+
+import { useSocket } from '../utils/common/socket'
+import Copy from '../components/Copy'
+import Logo from '../components/Logo'
 
 export default function Home() {
+  const socket = useSocket()
+  const [roomId, setRoomId] = useState('')
+
+  useEffect(() => {
+    socket.emit('room:create')
+    socket.on('room:create', data => {
+      setRoomId(data.id)
+    })
+  }, [socket])
+
   return (
     <VStack
       alignItems={{ base: 'center', lg: 'stretch' }}
@@ -26,17 +38,21 @@ export default function Home() {
               marginRight="1rem"
               id="1"
             >
-              M95a23
+              {Boolean(roomId) ? roomId : 'Cargando...'}
             </Heading>
             <Copy />
           </HStack>
         </VStack>
         <Stack padding="5rem 0" direction={['column', 'row']}>
-          <Button marginRight={{ base: '0', lg: '2rem' }} colorScheme="blue">
-            <Link href="/transcribe">Ir a la sala</Link>
+          <Button
+            isDisabled={!roomId}
+            marginRight={{ base: '0', lg: '2rem' }}
+            colorScheme="blue"
+          >
+            <Link href={`/transcribe?roomId=${roomId}`}>Ir a la sala</Link>
           </Button>
         </Stack>
       </VStack>
     </VStack>
-  );
+  )
 }

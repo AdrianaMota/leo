@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react'
 import {
   VStack,
   Textarea,
@@ -10,37 +10,64 @@ import {
   IconButton,
   Text,
   Icon,
-} from '@chakra-ui/react';
+} from '@chakra-ui/react'
 import SpeechRecognition, {
   useSpeechRecognition,
-} from 'react-speech-recognition';
+} from 'react-speech-recognition'
+import { MinusIcon, AddIcon } from '@chakra-ui/icons'
+import { useRouter } from 'next/router'
 
-import Logo from '../components/Logo';
-import { MinusIcon, AddIcon } from '@chakra-ui/icons';
+import Logo from '../components/Logo'
+import ClientOnly from '../components/ClientOnly'
+import { useSocket } from '../utils/common/socket'
 
 export default function Transcribe() {
   const {
     transcript,
     listening: isListening,
     browserSupportsSpeechRecognition,
-  } = useSpeechRecognition();
-  const [fontSize, setFontSize] = useState(18);
+  } = useSpeechRecognition()
+
+  const socket = useSocket()
+  const router = useRouter()
+  const { roomId } = router.query
+
+  const [fontSize, setFontSize] = useState(18)
+  const [content, setContent] = useState('')
+  const [isOwner, setIsOwner] = useState(false)
+
+  useEffect(() => {
+    if (roomId) socket.emit('room:join', roomId)
+
+    socket.on('room:content', room => {
+      if (room.status === 404) return router.push('/') // redirect to main page if room is not found
+      setContent(room.content)
+      setIsOwner(room.isOwner)
+    })
+  }, [socket, roomId, router])
+
+  useEffect(() => {
+    setContent(transcript)
+    if (isOwner) {
+      socket.emit('room:editContent', { id: roomId, content: transcript })
+    }
+  }, [isOwner, roomId, socket, transcript])
 
   const handleFontSizeChange = event => {
-    setFontSize(event.target.value);
-  };
+    setFontSize(event.target.value)
+  }
 
   const increaseFontSize = () => {
-    setFontSize(Number(fontSize) + 1);
-  };
+    setFontSize(Number(fontSize) + 1)
+  }
 
   const decreaseFontSize = () => {
-    setFontSize(fontSize > 0 ? Number(fontSize) - 1 : Number(fontSize));
-  };
+    setFontSize(fontSize > 0 ? Number(fontSize) - 1 : Number(fontSize))
+  }
 
   const startListening = () => {
-    SpeechRecognition.startListening({ continuous: true, language: 'es-DO' });
-  };
+    SpeechRecognition.startListening({ continuous: true, language: 'es-DO' })
+  }
 
   return (
     <VStack
@@ -53,20 +80,22 @@ export default function Transcribe() {
       <HStack alignItems="center" justifyContent="space-between" width="full">
         <Logo />
         <HStack spacing="10">
-          <IconButton
-            rounded="md"
-            variant="unstyled"
-            onClick={
-              isListening ? SpeechRecognition.stopListening : startListening
-            }
-            icon={
-              isListening ? (
-                <MicrophoneIcon color="red.500" w="2.5rem" h="2.5rem" />
-              ) : (
-                <MicrophoneOffIcon w="2.5rem" h="2.5rem" />
-              )
-            }
-          />
+          {isOwner && (
+            <IconButton
+              rounded="md"
+              variant="unstyled"
+              onClick={
+                isListening ? SpeechRecognition.stopListening : startListening
+              }
+              icon={
+                isListening ? (
+                  <MicrophoneIcon color="red.500" w="2.5rem" h="2.5rem" />
+                ) : (
+                  <MicrophoneOffIcon w="2.5rem" h="2.5rem" />
+                )
+              }
+            />
+          )}
           <InputGroup width="auto" size="lg">
             <InputLeftAddon>
               <IconButton
@@ -94,21 +123,23 @@ export default function Transcribe() {
           </InputGroup>
         </HStack>
       </HStack>
-      {browserSupportsSpeechRecognition ? (
-        <Textarea
-          readOnly
-          variant="outline"
-          flex="1"
-          value={transcript}
-          fontSize={`${fontSize}px`}
-          padding="1rem 2rem"
-          placeholder="Aquí se mostrará el texto cuando el maestro empiece la a hablar"
-        />
-      ) : (
-        <Text>Browser doesn't support speech recognition.</Text>
-      )}
+      <ClientOnly display="flex" flexDirection="column" flex="1">
+        {browserSupportsSpeechRecognition ? (
+          <Textarea
+            readOnly
+            variant="outline"
+            value={content}
+            flex="1"
+            fontSize={`${fontSize}px`}
+            padding="1rem 2rem"
+            placeholder="Aquí se mostrará el texto cuando el maestro empiece la a hablar"
+          />
+        ) : (
+          <Text>Browser doesn't support speech recognition.</Text>
+        )}
+      </ClientOnly>
     </VStack>
-  );
+  )
 }
 
 const MicrophoneIcon = props => {
@@ -129,8 +160,8 @@ const MicrophoneIcon = props => {
       <line x1="12" y1="19" x2="12" y2="23"></line>
       <line x1="8" y1="23" x2="16" y2="23"></line>
     </Icon>
-  );
-};
+  )
+}
 
 const MicrophoneOffIcon = props => {
   return (
@@ -151,5 +182,5 @@ const MicrophoneOffIcon = props => {
       <line x1="12" y1="19" x2="12" y2="23"></line>
       <line x1="8" y1="23" x2="16" y2="23"></line>
     </Icon>
-  );
-};
+  )
+}
