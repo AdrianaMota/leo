@@ -26,7 +26,12 @@ export default function Home() {
     >
       <Logo />
       <VStack justifyContent="center" flex="0.8">
-        <Heading as="h2" fontSize="l" fontFamily="main" fontWeight="regular">
+        <Heading
+          as="h2"
+          fontSize={{ base: 'm', lg: 'l' }}
+          fontFamily="main"
+          fontWeight="regular"
+        >
           Copie el código para invitar estudiantes a la sala.
         </Heading>
         <VStack paddingTop="5rem" alignItems="center">
@@ -40,7 +45,7 @@ export default function Home() {
             >
               {Boolean(roomId) ? roomId : 'Cargando...'}
             </Heading>
-            <Copy code={roomId} />
+            <Copy code={roomId} size={'l'} color={'primaryYellow.500'} />
           </HStack>
         </VStack>
         <Stack padding="5rem 0" direction={['column', 'row']}>
@@ -48,7 +53,7 @@ export default function Home() {
             <Button
               isDisabled={!roomId}
               marginRight={{ base: '0', lg: '2rem' }}
-              colorScheme="blue"
+              colorScheme="primaryBlue"
             >
               Ir a la sala
             </Button>

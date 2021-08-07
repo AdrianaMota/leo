@@ -11,6 +11,8 @@ import {
   Text,
   Icon,
   Skeleton,
+  Heading,
+  Button,
 } from '@chakra-ui/react'
 import SpeechRecognition, {
   useSpeechRecognition,
@@ -22,6 +24,7 @@ import { throttle } from 'throttle-debounce'
 import Logo from '../components/Logo'
 import ClientOnly from '../components/ClientOnly'
 import { useSocket } from '../utils/common/socket'
+import Copy from '../components/Copy'
 
 export default function Transcribe() {
   const {
@@ -36,7 +39,7 @@ export default function Transcribe() {
 
   const socketRef = useRef(socket)
 
-  const [fontSize, setFontSize] = useState(18)
+  const [fontSize, setFontSize] = useState(70)
   const [content, setContent] = useState('')
   const [isOwner, setIsOwner] = useState(false)
   const [isInRoom, setIsInRoom] = useState(false)
@@ -94,6 +97,21 @@ export default function Transcribe() {
     SpeechRecognition.startListening({ continuous: true, language: 'es-DO' })
   }
 
+  const autoScroll = () => {
+    input.scrollTop = input.scrollHeight
+  }
+
+  const handleDownloadClick = event => {
+    const element = document.createElement('a')
+    const file = new Blob([document.getElementById('input').value], {
+      type: 'text/plain',
+    })
+    element.href = URL.createObjectURL(file)
+    element.download = 'Transcripción.txt'
+    document.body.appendChild(element) // Required for this to work in FireFox
+    element.click()
+  }
+
   return (
     <VStack
       alignItems={{ base: 'center', lg: 'stretch' }}
@@ -104,51 +122,60 @@ export default function Transcribe() {
     >
       <HStack alignItems="center" justifyContent="space-between" width="full">
         <Logo />
-        <HStack spacing="10">
-          {isOwner && (
-            <IconButton
-              rounded="md"
-              variant="unstyled"
-              onClick={
-                isListening ? SpeechRecognition.stopListening : startListening
-              }
-              icon={
-                isListening ? (
-                  <MicrophoneIcon color="red.500" w="2.5rem" h="2.5rem" />
-                ) : (
-                  <MicrophoneOffIcon w="2.5rem" h="2.5rem" />
-                )
-              }
-            />
-          )}
-          <InputGroup width="auto" size="lg">
-            <InputLeftAddon>
-              <IconButton
-                onClick={decreaseFontSize}
-                icon={<MinusIcon />}
-                aria-label="Decrease font size"
-                color="black"
-              />
-            </InputLeftAddon>
-            <Input
-              value={fontSize}
-              onChange={handleFontSizeChange}
-              fontSize="18px"
-              maxWidth="6rem"
-              textAlign="center"
-            />
-            <InputRightAddon>
-              <IconButton
-                onClick={increaseFontSize}
-                icon={<AddIcon />}
-                aria-label="Increase font size"
-                color="black"
-              />
-            </InputRightAddon>
-          </InputGroup>
+
+        <HStack paddingTop="1rem">
+          <Heading as="h3" fontSize="m" color="white" id="1">
+            {Boolean(roomId) ? roomId : 'Cargando...'}
+          </Heading>
+          <Copy code={roomId} size={'m'} />
         </HStack>
+        <VStack>
+          <HStack spacing="10">
+            {isOwner && (
+              <IconButton
+                rounded="md"
+                variant="unstyled"
+                onClick={
+                  isListening ? SpeechRecognition.stopListening : startListening
+                }
+                icon={
+                  isListening ? (
+                    <MicrophoneIcon color="red.500" w="2.5rem" h="2.5rem" />
+                  ) : (
+                    <MicrophoneOffIcon w="2.5rem" h="2.5rem" />
+                  )
+                }
+              />
+            )}
+            <InputGroup width="auto" size="lg">
+              <InputLeftAddon>
+                <IconButton
+                  onClick={decreaseFontSize}
+                  icon={<MinusIcon />}
+                  aria-label="Decrease font size"
+                  color="black"
+                />
+              </InputLeftAddon>
+              <Input
+                value={fontSize}
+                onChange={handleFontSizeChange}
+                fontSize="18px"
+                maxWidth="6rem"
+                textAlign="center"
+              />
+              <InputRightAddon>
+                <IconButton
+                  onClick={increaseFontSize}
+                  icon={<AddIcon />}
+                  aria-label="Increase font size"
+                  color="black"
+                />
+              </InputRightAddon>
+            </InputGroup>
+          </HStack>
+        </VStack>
       </HStack>
-      <ClientOnly display="flex" flexDirection="column" flex="1">
+      <ClientOnly display="flex" flexDirection="column" flex="1" width="100%">
         <Skeleton
           display="flex"
           flexDirection="column"
@@ -158,19 +185,32 @@ export default function Transcribe() {
         >
           {browserSupportsSpeechRecognition ? (
             <Textarea
+              id="input"
               readOnly
               variant="outline"
               value={content}
               flex="1"
+              fontFamily="heading"
               fontSize={`${fontSize}px`}
-              padding="1rem 2rem"
-              placeholder="Aquí se mostrará el texto cuando el maestro empiece la a hablar"
+              onChange={autoScroll}
+              padding="10rem"
+              placeholder="Aquí se mostrará el texto cuando el maestro empiece a hablar"
             />
           ) : (
-            <Text>Browser doesn't support speech recognition.</Text>
+            <Text>
+              Este buscador no soporta reconocimiento de audio a texto.
+            </Text>
           )}
         </Skeleton>
       </ClientOnly>
+      <Button
+        alignSelf={{ base: 'stretch', lg: 'flex-end' }}
+        marginRight={{ lg: '2rem' }}
+        colorScheme="primaryBlue"
+        onClick={handleDownloadClick}
+      >
+        Descargar Clase
+      </Button>
     </VStack>
   )
 }
