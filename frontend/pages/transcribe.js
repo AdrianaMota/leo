@@ -17,6 +17,7 @@ import {
 import SpeechRecognition, {
   useSpeechRecognition,
 } from 'react-speech-recognition'
+import createSpeechServicesPonyfill from 'web-speech-cognitive-services'
 import { MinusIcon, AddIcon } from '@chakra-ui/icons'
 import { useRouter } from 'next/router'
 import { throttle } from 'throttle-debounce'
@@ -29,9 +30,12 @@ import Copy from '../components/Copy'
 export default function Transcribe() {
   const {
     transcript,
+    resetTranscript,
     listening: isListening,
     browserSupportsSpeechRecognition,
   } = useSpeechRecognition()
+
+  const [loadingSpeechRecognition, setLoadingSpeechRecognition] = useState(true)
 
   const socket = useSocket()
   const router = useRouter()
@@ -44,6 +48,34 @@ export default function Transcribe() {
   const [isOwner, setIsOwner] = useState(false)
   const [isInRoom, setIsInRoom] = useState(false)
 
+  const inputRef = useRef()
+
+  const SUBSCRIPTION_KEY = '5f69a7a1e4ae444d9c0f28be77d74ad3'
+  const REGION = 'eastus'
+  const TOKEN_ENDPOINT = `https://${REGION}.api.cognitive.microsoft.com/sts/v1.0/issuetoken`
+
+  useEffect(() => {
+    const loadSpeechRecognition = async () => {
+      const response = await fetch(TOKEN_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Ocp-Apim-Subscription-Key': SUBSCRIPTION_KEY },
+      })
+      const authorizationToken = await response.text()
+
+      const {
+        SpeechRecognition: AzureSpeechRecognition,
+      } = await createSpeechServicesPonyfill({
+        credentials: {
+          region: REGION,
+          authorizationToken,
+        },
+      })
+      SpeechRecognition.applyPolyfill(AzureSpeechRecognition)
+      setLoadingSpeechRecognition(false)
+    }
+    loadSpeechRecognition()
+  }, [])
+
   useEffect(() => {
     socketRef.current = socket
   }, [socket])
@@ -53,12 +85,17 @@ export default function Transcribe() {
   }, [isInRoom, roomId])
 
   useEffect(() => {
+    const autoScroll = () => {
+      inputRef.current.scrollTop = inputRef.current.scrollHeight
+    }
+
     socketRef.current.on('room:content', room => {
       if (room.status === 404) return router.push('/') // redirect to main page if room is not found
       if (!isInRoom) setIsInRoom(true)
 
       // console.log('received data from room: ', room, socket.id)
       setContent(room.content)
+      autoScroll()
       setIsOwner(room.owner === socket.id)
     })
   }, [socket, roomId, router, isInRoom])
@@ -97,13 +134,9 @@ export default function Transcribe() {
     SpeechRecognition.startListening({ continuous: true, language: 'es-DO' })
   }
 
-  const autoScroll = () => {
-    input.scrollTop = input.scrollHeight
-  }
-
   const handleDownloadClick = event => {
     const element = document.createElement('a')
-    const file = new Blob([document.getElementById('input').value], {
+    const file = new Blob([inputRef.current.value], {
       type: 'text/plain',
     })
     element.href = URL.createObjectURL(file)
@@ -136,7 +169,9 @@ export default function Transcribe() {
                 rounded="md"
                 variant="unstyled"
                 onClick={
-                  isListening ? SpeechRecognition.stopListening : startListening
+                  isListening
+                    ? SpeechRecognition.abortListening
+                    : startListening
                 }
                 icon={
                   isListening ? (
@@ -185,14 +220,13 @@ export default function Transcribe() {
         >
           {browserSupportsSpeechRecognition ? (
             <Textarea
-              id="input"
+              ref={inputRef}
               readOnly
               variant="outline"
               value={content}
               flex="1"
               fontFamily="heading"
               fontSize={`${fontSize}px`}
-              onChange={autoScroll}
               padding="10rem"
               placeholder="Aquí se mostrará el texto cuando el maestro empiece a hablar"
             />
