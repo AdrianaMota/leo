@@ -17,7 +17,6 @@ import {
 import SpeechRecognition, {
   useSpeechRecognition,
 } from 'react-speech-recognition'
-import createSpeechServicesPonyfill from 'web-speech-cognitive-services'
 import { MinusIcon, AddIcon } from '@chakra-ui/icons'
 import { useRouter } from 'next/router'
 import { throttle } from 'throttle-debounce'
@@ -30,12 +29,13 @@ import Copy from '../components/Copy'
 export default function Transcribe() {
   const {
     transcript,
-    resetTranscript,
     listening: isListening,
     browserSupportsSpeechRecognition,
   } = useSpeechRecognition()
 
-  const [loadingSpeechRecognition, setLoadingSpeechRecognition] = useState(true)
+  const [isSpeechRecognitionLoading, setIsSpeechRecognitionLoading] = useState(
+    true,
+  )
 
   const socket = useSocket()
   const router = useRouter()
@@ -50,29 +50,31 @@ export default function Transcribe() {
 
   const inputRef = useRef()
 
-  const SUBSCRIPTION_KEY = '5f69a7a1e4ae444d9c0f28be77d74ad3'
-  const REGION = 'eastus'
-  const TOKEN_ENDPOINT = `https://${REGION}.api.cognitive.microsoft.com/sts/v1.0/issuetoken`
-
   useEffect(() => {
     const loadSpeechRecognition = async () => {
-      const response = await fetch(TOKEN_ENDPOINT, {
-        method: 'POST',
-        headers: { 'Ocp-Apim-Subscription-Key': SUBSCRIPTION_KEY },
-      })
-      const authorizationToken = await response.text()
+      const response = await fetch('/api/azure/getAuthorizationToken')
+      const { token } = await response.json()
+
+      if (!token) {
+        return setIsSpeechRecognitionLoading(false)
+      }
+
+      const createSpeechServicesPonyfill = require('web-speech-cognitive-services')
+        .default
 
       const {
         SpeechRecognition: AzureSpeechRecognition,
       } = await createSpeechServicesPonyfill({
         credentials: {
-          region: REGION,
-          authorizationToken,
+          region: process.env.NEXT_PUBLIC_AZURE_REGION,
+          authorizationToken: token,
         },
       })
+
       SpeechRecognition.applyPolyfill(AzureSpeechRecognition)
-      setLoadingSpeechRecognition(false)
+      setIsSpeechRecognitionLoading(false)
     }
+
     loadSpeechRecognition()
   }, [])
 
@@ -85,17 +87,11 @@ export default function Transcribe() {
   }, [isInRoom, roomId])
 
   useEffect(() => {
-    const autoScroll = () => {
-      inputRef.current.scrollTop = inputRef.current.scrollHeight
-    }
-
     socketRef.current.on('room:content', room => {
       if (room.status === 404) return router.push('/') // redirect to main page if room is not found
       if (!isInRoom) setIsInRoom(true)
 
-      // console.log('received data from room: ', room, socket.id)
       setContent(room.content)
-      autoScroll()
       setIsOwner(room.owner === socket.id)
     })
   }, [socket, roomId, router, isInRoom])
@@ -112,10 +108,20 @@ export default function Transcribe() {
   )
 
   useEffect(() => {
+    const autoScroll = throttle(500, () => {
+      if (inputRef.current) {
+        console.log(inputRef.current)
+        inputRef.current.scrollTop = inputRef.current.scrollHeight
+      }
+    })
+
     if (isOwner) {
       sendContentToRoom(roomId, transcript)
       setContent(transcript)
     }
+
+    // scroll anytime there is new content
+    autoScroll()
   }, [content, isOwner, roomId, sendContentToRoom, socket, transcript])
 
   const handleFontSizeChange = event => {
@@ -134,7 +140,7 @@ export default function Transcribe() {
     SpeechRecognition.startListening({ continuous: true, language: 'es-DO' })
   }
 
-  const handleDownloadClick = event => {
+  const handleDownloadClick = () => {
     const element = document.createElement('a')
     const file = new Blob([inputRef.current.value], {
       type: 'text/plain',
@@ -216,7 +222,7 @@ export default function Transcribe() {
           flexDirection="column"
           flex="1"
           rounded="lg"
-          isLoaded={isInRoom}
+          isLoaded={isInRoom && !isSpeechRecognitionLoading}
         >
           {browserSupportsSpeechRecognition ? (
             <Textarea
