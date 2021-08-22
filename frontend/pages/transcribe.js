@@ -367,7 +367,7 @@ const EditableRoomName = ({ roomId, roomName, setRoomName }) => {
         }}
         onSubmit={handleSubmit}
       >
-        {() => (
+        {({}) => (
           <Form>
             <Field name="roomName">
               {({ field, form }) => (
@@ -384,7 +384,6 @@ const EditableRoomName = ({ roomId, roomName, setRoomName }) => {
                     id="roomName"
                     fontSize="1.8rem"
                     py="8"
-                    onBlur={handleSubmit}
                     onKeyDown={handleKeyDown}
                     isDisabled={updateClass.isLoading}
                     autoFocus
