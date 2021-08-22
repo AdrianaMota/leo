@@ -20,6 +20,7 @@ model User {
   id             Int        @id @default(autoincrement())
   username       String     @unique
   email          String     @unique
+  password       String     
   universityId   Int
   university     University @relation(fields: [universityId], references: [id])
   classes        Class[]
@@ -33,7 +34,7 @@ model University {
   id        Int       @id @default(autoincrement())
   name      String    @unique
   address   Address[]
-  User      User[]
+  users     User[]
   classes   Class[]
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -43,9 +44,10 @@ model Class {
   id           Int         @id @default(autoincrement())
   code         String      @unique
   content      String      @default("")
-  University   University? @relation(fields: [universityId], references: [id])
-  universityId Int?
-  admin        User[]      @relation("admin")
+  name         String
+  university   University @relation(fields: [universityId], references: [id])
+  universityId Int
+  admins       User[]      @relation("admin")
   users        User[]
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
@@ -56,6 +58,6 @@ model Address {
   city         String
   street       String
   country      String
-  University   University @relation(fields: [universityId], references: [id])
+  university   University @relation(fields: [universityId], references: [id])
   universityId Int
 }

@@ -1,4 +1,4 @@
-export default {
+const button = {
   // Styles for the base style
   baseStyle: {
     fontWeight: '400',
@@ -15,3 +15,5 @@ export default {
   // Styles for the visual style variations
   variants: {},
 }
+
+export default button

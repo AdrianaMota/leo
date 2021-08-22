@@ -1,3 +1,7 @@
 import Button from './button'
 
-export default { Button }
+const components = {
+  Button,
+}
+
+export default components

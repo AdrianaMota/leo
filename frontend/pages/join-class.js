@@ -1,10 +1,9 @@
 import { useState } from 'react'
 import { Button, VStack, Input, Flex, Image, Spacer } from '@chakra-ui/react'
-import Link from 'next/link'
-import Logo from '../components/Logo'
+import Navigation from '../components/Navigation'
 import { useRouter } from 'next/router'
 
-export default function Home() {
+export default function Verification() {
   const router = useRouter()
 
   const [inputValue, setInputValue] = useState('')
@@ -14,7 +13,9 @@ export default function Home() {
   }
 
   const handleStartClick = () => {
-    if (inputValue.length !== 6) return
+    if (inputValue.length !== 6) {
+      return alert('Por favor introducir un código de seis dígitos.')
+    }
     router.push(`/transcribe?roomId=${inputValue}`)
   }
 
@@ -25,7 +26,7 @@ export default function Home() {
       overflow="hidden"
       padding={{ base: '1rem', lg: '2rem 5rem' }}
     >
-      <Logo />
+      <Navigation />
       <Flex
         flex="1"
         padding={['0 2rem', '0 5rem']}
@@ -67,3 +68,5 @@ export default function Home() {
     </VStack>
   )
 }
+
+Verification.auth = true

@@ -6,6 +6,7 @@ CREATE TABLE "User" (
     "id" SERIAL NOT NULL,
     "username" TEXT NOT NULL,
     "email" TEXT NOT NULL,
+    "password" TEXT NOT NULL,
     "universityId" INTEGER NOT NULL,
     "roles" "Role"[],
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -29,7 +30,7 @@ CREATE TABLE "Class" (
     "id" SERIAL NOT NULL,
     "code" TEXT NOT NULL,
     "content" TEXT NOT NULL DEFAULT E'',
-    "universityId" INTEGER,
+    "universityId" INTEGER NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -87,7 +88,7 @@ CREATE INDEX "_admin_B_index" ON "_admin"("B");
 ALTER TABLE "User" ADD FOREIGN KEY ("universityId") REFERENCES "University"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Class" ADD FOREIGN KEY ("universityId") REFERENCES "University"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "Class" ADD FOREIGN KEY ("universityId") REFERENCES "University"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Address" ADD FOREIGN KEY ("universityId") REFERENCES "University"("id") ON DELETE CASCADE ON UPDATE CASCADE;

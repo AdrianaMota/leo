@@ -1,3 +1,6 @@
+import { externalClient } from '../../../utils/api-client'
+import { getSession } from 'next-auth/client'
+
 const tokenEndpoint = `https://${process.env.NEXT_PUBLIC_AZURE_REGION}.api.cognitive.microsoft.com/sts/v1.0/issuetoken`
 const azureSubscriptionKey = process.env.AZURE_SUBSCRIPTION_KEY
 
@@ -8,17 +11,21 @@ export default async function getAuthorizationToken(req, res) {
   }
 
   try {
-    // TODO: add session verification
-    const response = await fetch(tokenEndpoint, {
-      method: 'POST',
+    // make sure the user is logged in
+    const session = await getSession({ req })
+    if (!session) {
+      const error = new Error('Unauthenticated')
+      error.statusCode = 401
+      throw error
+    }
+
+    const { data } = await externalClient.post(tokenEndpoint, null, {
       headers: {
         'Ocp-Apim-Subscription-Key': azureSubscriptionKey,
       },
     })
 
-    const authorizationToken = await response.text()
-
-    res.status(200).json({ token: authorizationToken })
+    res.status(200).json({ token: data })
   } catch (error) {
     const statusCode = error?.statusCode ?? 500
 

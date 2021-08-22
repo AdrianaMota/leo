@@ -1,9 +1,9 @@
-import { VStack, Heading, Box, Text } from '@chakra-ui/react'
+import { Box, Text } from '@chakra-ui/react'
 import Link from 'next/link'
 
-const Class = ({ name, date }) => {
+const Class = ({ name, date, code }) => {
   return (
-    <Link href="" passHref>
+    <Link href={`/transcribe?roomId=${code}`} passHref>
       <Box
         as="a"
         backgroundColor="transparent"

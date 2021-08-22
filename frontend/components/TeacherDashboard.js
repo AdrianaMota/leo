@@ -1,8 +1,9 @@
 import { Button, VStack, Heading } from '@chakra-ui/react'
-import Link from 'next/link'
-import Logo from '../components/Logo'
 
-export default function Home() {
+import Link from 'next/link'
+import Navigation from './Navigation'
+
+const TeacherDashboard = () => {
   return (
     <VStack
       alignItems={{ base: 'center', lg: 'stretch' }}
@@ -10,13 +11,22 @@ export default function Home() {
       overflow="hidden"
       padding={{ base: '1rem', lg: '2rem 5rem' }}
     >
-      <Logo />
+      <Navigation />
       <VStack
         alignItems="center"
         justifyContent="center"
         flex="0.4"
         padding="0 1rem"
       >
+        <Heading
+          textAlign="center"
+          as="h1"
+          fontFamily="heading"
+          fontSize={['l', 'xl', 'xxl']}
+          alignItems="center"
+        >
+          ¡Bienvenido!
+        </Heading>
         <Heading
           fontFamily="main"
           fontWeight="light"
@@ -27,12 +37,12 @@ export default function Home() {
           ¿Qué deseas hacer?
         </Heading>
         <VStack padding="5rem 0">
-          <Link href="/verification" passHref>
+          <Link href="/generator" passHref>
             <Button width="30rem" marginBottom="2rem" colorScheme="primaryBlue">
-              Entrar a Clase
+              Iniciar Clase
             </Button>
           </Link>
-          <Link href="/history" passHref>
+          <Link href="/class-history" passHref>
             <Button
               width="30rem"
               colorScheme="primaryYellow"
@@ -46,3 +56,5 @@ export default function Home() {
     </VStack>
   )
 }
+
+export default TeacherDashboard

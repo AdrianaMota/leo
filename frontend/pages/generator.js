@@ -2,18 +2,18 @@ import { useEffect, useState } from 'react'
 import { Button, VStack, Heading, Stack, HStack } from '@chakra-ui/react'
 import Link from 'next/link'
 
-import { useSocket } from '../utils/common/socket'
+import { useSocket } from '../utils/socket'
 import Copy from '../components/Copy'
-import Logo from '../components/Logo'
+import Navigation from '../components/Navigation'
 
-export default function Home() {
+export default function Generator() {
   const socket = useSocket()
   const [roomId, setRoomId] = useState('')
 
   useEffect(() => {
     socket.emit('room:create')
     socket.on('room:create', data => {
-      setRoomId(data.id)
+      setRoomId(data.code)
     })
   }, [socket])
 
@@ -24,7 +24,7 @@ export default function Home() {
       overflow="hidden"
       padding={{ base: '1rem', lg: '2rem 5rem' }}
     >
-      <Logo />
+      <Navigation />
       <VStack justifyContent="center" flex="0.8">
         <Heading
           as="h2"
@@ -43,7 +43,7 @@ export default function Home() {
               marginRight="1rem"
               id="1"
             >
-              {Boolean(roomId) ? roomId : 'Cargando...'}
+              {roomId ? roomId : 'Cargando...'}
             </Heading>
             <Copy code={roomId} size={'l'} color={'primaryYellow.500'} />
           </HStack>
@@ -63,3 +63,5 @@ export default function Home() {
     </VStack>
   )
 }
+
+Generator.auth = true

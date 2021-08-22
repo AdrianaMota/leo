@@ -13,18 +13,25 @@ import {
   Skeleton,
   Heading,
   Button,
+  Stack,
+  FormErrorMessage,
+  FormControl,
 } from '@chakra-ui/react'
 import SpeechRecognition, {
   useSpeechRecognition,
 } from 'react-speech-recognition'
-import { MinusIcon, AddIcon } from '@chakra-ui/icons'
+import { MinusIcon, AddIcon, EditIcon } from '@chakra-ui/icons'
 import { useRouter } from 'next/router'
 import { throttle } from 'throttle-debounce'
 
-import Logo from '../components/Logo'
 import ClientOnly from '../components/ClientOnly'
-import { useSocket } from '../utils/common/socket'
+import { useSocket } from '../utils/socket'
 import Copy from '../components/Copy'
+import { client, externalClient } from '../utils/api-client'
+import Logo from '../components/Logo'
+import { useMutation } from 'react-query'
+import { useSession } from 'next-auth/client'
+import { Form, Formik, Field } from 'formik'
 
 export default function Transcribe() {
   const {
@@ -45,6 +52,7 @@ export default function Transcribe() {
 
   const [fontSize, setFontSize] = useState(70)
   const [content, setContent] = useState('')
+  const [roomName, setRoomName] = useState('')
   const [isOwner, setIsOwner] = useState(false)
   const [isInRoom, setIsInRoom] = useState(false)
 
@@ -52,8 +60,9 @@ export default function Transcribe() {
 
   useEffect(() => {
     const loadSpeechRecognition = async () => {
-      const response = await fetch('/api/azure/getAuthorizationToken')
-      const { token } = await response.json()
+      const {
+        data: { token },
+      } = await client.get('/api/azure/get-authorization-token')
 
       if (!token) {
         return setIsSpeechRecognitionLoading(false)
@@ -91,15 +100,16 @@ export default function Transcribe() {
       if (room.status === 404) return router.push('/') // redirect to main page if room is not found
       if (!isInRoom) setIsInRoom(true)
 
+      setRoomName(room.name)
       setContent(room.content)
-      setIsOwner(room.owner === socket.id)
+      setIsOwner(room.isOwner)
     })
   }, [socket, roomId, router, isInRoom])
 
   const sendContentToRoom = useMemo(
     () =>
       throttle(500, (roomId, content) => {
-        socketRef.current.emit('room:editContent', {
+        socketRef.current.emit('room:edit', {
           id: roomId,
           content,
         })
@@ -110,7 +120,6 @@ export default function Transcribe() {
   useEffect(() => {
     const autoScroll = throttle(500, () => {
       if (inputRef.current) {
-        console.log(inputRef.current)
         inputRef.current.scrollTop = inputRef.current.scrollHeight
       }
     })
@@ -162,12 +171,34 @@ export default function Transcribe() {
       <HStack alignItems="center" justifyContent="space-between" width="full">
         <Logo />
 
-        <HStack paddingTop="1rem">
-          <Heading as="h3" fontSize="m" color="white" id="1">
-            {Boolean(roomId) ? roomId : 'Cargando...'}
-          </Heading>
-          <Copy code={roomId} size={'m'} />
-        </HStack>
+        <Stack
+          ml="0px !important"
+          alignItems="center"
+          spacing="8"
+          paddingTop="3rem"
+        >
+          <Skeleton isLoaded={isInRoom}>
+            {isOwner ? (
+              <EditableRoomName
+                roomId={roomId}
+                roomName={roomName}
+                setRoomName={setRoomName}
+              />
+            ) : (
+              <Heading as="h2" color="primaryYellow.500">
+                {roomName}
+              </Heading>
+            )}
+          </Skeleton>
+
+          <HStack>
+            <Heading as="h3" fontSize="m" color="white" id="1">
+              {roomId ? roomId : 'Cargando...'}
+            </Heading>
+            <Copy code={roomId} size={'m'} />
+          </HStack>
+        </Stack>
+
         <VStack>
           <HStack spacing="10">
             {isOwner && (
@@ -255,6 +286,134 @@ export default function Transcribe() {
   )
 }
 
+export function normalizeEventKey(event) {
+  const { key, keyCode } = event
+
+  const isArrowKey =
+    keyCode >= 37 && keyCode <= 40 && key.indexOf('Arrow') !== 0
+
+  const eventKey = isArrowKey ? `Arrow${key}` : key
+
+  return eventKey
+}
+
+const EditableRoomName = ({ roomId, roomName, setRoomName }) => {
+  const [session] = useSession()
+  const socket = useSocket()
+
+  const socketRef = useRef(socket)
+
+  const updateClass = useMutation(({ roomName }) =>
+    externalClient
+      .patch(
+        `/classes/${roomId}`,
+        { roomName },
+        { headers: { Authorization: `Bearer ${session.accessToken}` } },
+      )
+      .then(response => response.data),
+  )
+
+  const [isEditing, setIsEditing] = useState(false)
+
+  const handleSubmit = values => {
+    if (values.roomName === roomName) return setIsEditing(false)
+
+    updateClass.mutate(
+      {
+        roomName: values.roomName,
+      },
+      {
+        onSuccess: updatedClass => {
+          setRoomName(updatedClass.name)
+          setIsEditing(false)
+          socketRef.current.emit('room:edit', {
+            id: roomId,
+            name: updatedClass.name,
+          })
+        },
+      },
+    )
+  }
+
+  const handleKeyDown = event => {
+    const keyActions = {
+      Escape: () => setIsEditing(false),
+    }
+
+    const eventKey = normalizeEventKey(event)
+
+    if (eventKey === 'Enter' && event.shiftKey) {
+      return
+    }
+
+    const action = keyActions[eventKey]
+    if (action) {
+      return action(event)
+    }
+  }
+
+  if (isEditing) {
+    return (
+      <Formik
+        initialValues={{ roomName }}
+        validate={values => {
+          const errors = {}
+
+          if (!values.roomName) {
+            errors.roomName = 'Este campo es requerido.'
+          }
+
+          return errors
+        }}
+        onSubmit={handleSubmit}
+      >
+        {() => (
+          <Form>
+            <Field name="roomName">
+              {({ field, form }) => (
+                <FormControl
+                  width="full"
+                  isInvalid={form.errors.roomName && form.touched.roomName}
+                >
+                  <Input
+                    {...field}
+                    disabled={updateClass.isLoading}
+                    defaultValue={roomName}
+                    placeholder="Nombre de la clase"
+                    size="lg"
+                    id="roomName"
+                    fontSize="1.8rem"
+                    py="8"
+                    onBlur={handleSubmit}
+                    onKeyDown={handleKeyDown}
+                    isDisabled={updateClass.isLoading}
+                    autoFocus
+                  />
+                  <FormErrorMessage fontSize="lg">
+                    {form.errors.username}
+                  </FormErrorMessage>
+                </FormControl>
+              )}
+            </Field>
+          </Form>
+        )}
+      </Formik>
+    )
+  }
+
+  return (
+    <HStack
+      cursor="pointer"
+      spacing="4"
+      color="primaryYellow.500"
+      onClick={() => setIsEditing(true)}
+    >
+      <Heading as="h2">{roomName}</Heading>
+      <EditIcon fontSize={'m'} />
+    </HStack>
+  )
+}
+
 const MicrophoneIcon = props => {
   return (
     <Icon
@@ -297,3 +456,5 @@ const MicrophoneOffIcon = props => {
     </Icon>
   )
 }
+
+Transcribe.auth = true
