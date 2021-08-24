@@ -57,6 +57,7 @@ export default function Transcribe() {
   const [isInRoom, setIsInRoom] = useState(false)
 
   const inputRef = useRef()
+  const initialContent = useRef('')
 
   useEffect(() => {
     const loadSpeechRecognition = async () => {
@@ -98,7 +99,10 @@ export default function Transcribe() {
   useEffect(() => {
     socketRef.current.on('room:content', room => {
       if (room.status === 404) return router.push('/') // redirect to main page if room is not found
-      if (!isInRoom) setIsInRoom(true)
+      if (!isInRoom) {
+        initialContent.current = room.content + ' '
+        setIsInRoom(true)
+      }
 
       setRoomName(room.name)
       setContent(room.content)
@@ -124,9 +128,10 @@ export default function Transcribe() {
       }
     })
 
-    if (isOwner) {
-      sendContentToRoom(roomId, transcript)
-      setContent(transcript)
+    if (isOwner && transcript.length > 0) {
+      const newContent = initialContent.current + transcript
+      sendContentToRoom(roomId, newContent)
+      setContent(newContent)
     }
 
     // scroll anytime there is new content
@@ -367,7 +372,7 @@ const EditableRoomName = ({ roomId, roomName, setRoomName }) => {
         }}
         onSubmit={handleSubmit}
       >
-        {({}) => (
+        {() => (
           <Form>
             <Field name="roomName">
               {({ field, form }) => (
