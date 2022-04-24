@@ -63,7 +63,7 @@ export default function Transcribe() {
     const loadSpeechRecognition = async () => {
       const {
         data: { token },
-      } = await client.get('/api/azure/get-authorization-token')
+      } = await client.get('/api/azure/get-authorization-token').catch(() => ({data: {token: null}}))
 
       if (!token) {
         return setIsSpeechRecognitionLoading(false)
