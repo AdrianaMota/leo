@@ -63,7 +63,9 @@ export default function Transcribe() {
     const loadSpeechRecognition = async () => {
       const {
         data: { token },
-      } = await client.get('/api/azure/get-authorization-token').catch(() => ({data: {token: null}}))
+      } = await client
+        .get('/api/azure/get-authorization-token')
+        .catch(() => ({ data: { token: null } }))
 
       if (!token) {
         return setIsSpeechRecognitionLoading(false)
@@ -151,7 +153,7 @@ export default function Transcribe() {
   }
 
   const startListening = () => {
-    SpeechRecognition.startListening({ continuous: true, language: 'es-DO' })
+    SpeechRecognition.startListening({ continuous: true, language: 'en-US' })
   }
 
   const handleDownloadClick = () => {

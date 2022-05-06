@@ -3,7 +3,7 @@ import http from 'http'
 import { Server } from 'socket.io'
 import cors from 'cors'
 import { PrismaClient } from '@prisma/client'
-import bcrypt from 'bcrypt'
+import bcrypt from 'bcryptjs'
 import socketioJwt from 'socketio-jwt'
 
 import { generateRandomString } from './utils/random'
