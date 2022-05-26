@@ -153,7 +153,7 @@ export default function Transcribe() {
   }
 
   const startListening = () => {
-    SpeechRecognition.startListening({ continuous: true, language: 'en-US' })
+    SpeechRecognition.startListening({ continuous: true, language: 'es-DO' })
   }
 
   const handleDownloadClick = () => {
