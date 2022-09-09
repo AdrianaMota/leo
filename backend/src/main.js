@@ -13,7 +13,7 @@ const app = express()
 const server = http.createServer(app)
 const io = new Server(server, {
   cors: {
-    origin: 'http://localhost:3000',
+    origin: process.env.FRONTEND_URL,
   },
 })
 const prisma = new PrismaClient()
@@ -272,8 +272,8 @@ io.on('connection', socket => {
 })
 
 // Start back-end server
-server.listen(3001, () => {
-  console.log('listening on *:3001')
+server.listen(process.env.PORT, () => {
+  console.log(`listening on *:${process.env.PORT}`)
 })
 
 server.on('close', async () => {
