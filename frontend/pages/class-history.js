@@ -57,9 +57,24 @@ function ClassList() {
 
   return (
     <VStack marginTop="2rem" spacing="6">
-      {data?.classes?.map(({ name, code }) => (
-        <Class key={code} code={code} name={name ?? code} date="09/08/2021" />
-      ))}
+      {data?.classes?.map(({ name, code, createdAt }) => {
+        const createdDate = new Date(createdAt)
+        const options = {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+        }
+
+        return (
+          <Class
+            key={code}
+            code={code}
+            name={name ?? code}
+            date={createdDate.toLocaleDateString('en-US', options)}
+          />
+        )
+      })}
     </VStack>
   )
 }

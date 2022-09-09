@@ -81,6 +81,9 @@ app.get('/classes', isAuth, async (req, res) => {
         },
       ],
     },
+    orderBy: {
+      createdAt: 'desc',
+    },
   })
 
   res.status(200).json({ classes })
