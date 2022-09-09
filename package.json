@@ -9,7 +9,10 @@
     "dev": "run-p dev:*",
     "dev:frontend": "yarn workspace frontend dev",
     "predev:backend": "docker-compose up -d && prisma migrate dev && prisma db seed --preview-feature",
-    "dev:backend": "yarn workspace backend start:dev"
+    "dev:backend": "yarn workspace backend start:dev",
+    "start:backend": "yarn workspace backend start",
+    "start:frontend": "yarn workspace frontend start",
+    "build:frontend": "yarn workspace frontend build" 
   },
   "dependencies": {
     "@prisma/client": "^2.29.1",
