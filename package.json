@@ -15,8 +15,8 @@
     "build:frontend": "yarn workspace frontend build" 
   },
   "dependencies": {
-    "@prisma/client": "^2.29.1",
-    "prisma": "2.28.0"
+    "@prisma/client": "^2.30.3",
+    "prisma": "^2.30.3"
   },
   "devDependencies": {
     "@types/node": "^16.4.13",
